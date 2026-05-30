@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GWPC Property Tools for PolicyCenter
 // @namespace    GPG_Scripts
-// @version      1.0.3
+// @version      1.0.4
 // @description  Add Reconstruction Calculator, Zillow, and Google Maps buttons to PolicyCenter/Guidewire
 // @match        https://policycenter.farmersinsurance.com/pc/PolicyCenter.do*
 // @match        https://policycenter-2.farmersinsurance.com/pc/PolicyCenter.do*
@@ -57,10 +57,23 @@
 
     const normalizeAddress = (value) => value.replace(/\s+/g, ' ').trim();
 
+    const resolveMountElement = (mountSelector) => {
+        if (typeof mountSelector === 'string') {
+            return document.querySelector(mountSelector);
+        }
+
+        const sourceElement = document.querySelector(mountSelector.selector);
+        if (!sourceElement) {
+            return null;
+        }
+
+        return mountSelector.closest ? sourceElement.closest(mountSelector.closest) : sourceElement;
+    };
+
     const findMountTarget = (screenConfigs) => {
         for (const screenConfig of screenConfigs) {
-            for (const selector of screenConfig.mountSelectors) {
-                const element = document.querySelector(selector);
+            for (const mountSelector of screenConfig.mountSelectors) {
+                const element = resolveMountElement(mountSelector);
                 if (element) {
                     return { screenConfig, element };
                 }
@@ -142,6 +155,21 @@
                 key: 'existingPolicy',
                 zipCodeFromAddressFirst: true,
                 mountSelectors: [
+                    {
+                        selector:
+                            '#PolicyFileDwellingHOE-PolicyFile_Homeowners_Dwelling_Screen-PolicyFileDwellingConstructionPanelSet-HiddenWidgetsDV-0',
+                        closest: '.gw-DetailViewWidget--body'
+                    },
+                    {
+                        selector:
+                            '#PolicyFileDwellingHOE-PolicyFile_Homeowners_Dwelling_Screen-PolicyFileDwellingConstructionPanelSet-HiddenWidgetsDV-ResultDataML_Input',
+                        closest: '.gw-DetailViewWidget--body'
+                    },
+                    {
+                        selector:
+                            '[id^="PolicyFileDwellingHOE"][id*="PolicyFileDwellingConstructionPanelSet-HiddenWidgetsDV"]',
+                        closest: '.gw-DetailViewWidget--body'
+                    },
                     '#PolicyFileDwellingHOE-PolicyFile_Homeowners_Dwelling_Screen-7',
                     '#PolicyFileDwellingHOE-PolicyFile_Homeowners_Dwelling_Screen-HODwellingConstructionDetailsHOEDV-ApproxSqFoot_Input',
                     '#PolicyFileDwellingHOE-PolicyFile_Homeowners_Dwelling_Screen-HODwellingConstructionDetailsHOEDV-ApproxSqFoot',
