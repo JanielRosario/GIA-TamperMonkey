@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GWPC Property Tools for PolicyCenter
 // @namespace    GPG_Scripts
-// @version      1.0.5
+// @version      1.0.6
 // @description  Add Reconstruction Calculator, Zillow, and Google Maps buttons to PolicyCenter/Guidewire
 // @match        https://policycenter.farmersinsurance.com/pc/PolicyCenter.do*
 // @match        https://policycenter-2.farmersinsurance.com/pc/PolicyCenter.do*
@@ -160,7 +160,7 @@
                     {
                         selector:
                             '.gw-InputDividerWidget[id^="PolicyFileDwellingHOE"][id*="HODwellingConstructionDetailsHOEDV-1"]',
-                        placement: 'after'
+                        placement: 'topLeft'
                     },
                     {
                         selector:
@@ -208,12 +208,12 @@
                     {
                         selector:
                             '#SubmissionWizard-LOBWizardStepGroup-LineWizardStepSet-HODwellingHOEScreen-HODwellingConstructionSingleHOEPanelSet-HODwellingConstructionDetailsHOEDV-1',
-                        placement: 'after'
+                        placement: 'topLeft'
                     },
                     {
                         selector:
                             '.gw-InputDividerWidget[id^="SubmissionWizard"][id*="HODwellingConstructionDetailsHOEDV-1"]',
-                        placement: 'after'
+                        placement: 'topLeft'
                     },
                     '#SubmissionWizard-LOBWizardStepGroup-LineWizardStepSet-HODwellingHOEScreen-HODwellingConstructionSingleHOEPanelSet-VRsikUpdateDV-0',
                     '#SubmissionWizard-LOBWizardStepGroup-LineWizardStepSet-HODwellingHOEScreen-HODwellingConstructionSingleHOEPanelSet-VRiskUpdateDV-0'
@@ -242,7 +242,7 @@
                     {
                         selector:
                             '.gw-InputDividerWidget[id^="PolicyChangeWizard"][id*="HODwellingConstructionDetailsHOEDV-1"]',
-                        placement: 'after'
+                        placement: 'topLeft'
                     },
                     '#PolicyChangeWizard-LOBWizardStepGroup-LineWizardStepSet-HODwellingHOEScreen-HODwellingConstructionSingleHOEPanelSet-VRsikUpdateDV-0',
                     '#PolicyChangeWizard-LOBWizardStepGroup-LineWizardStepSet-HODwellingHOEScreen-HODwellingConstructionSingleHOEPanelSet-VRiskUpdateDV-0'
@@ -508,10 +508,6 @@
             return false;
         }
 
-        if (target.placement === 'after') {
-            return root.parentElement === target.element.parentElement && root.previousElementSibling === target.element;
-        }
-
         return target.element.contains(root);
     };
 
@@ -522,7 +518,7 @@
         button.textContent = 'Reconstruction Calculator';
 
         Object.assign(button.style, {
-            margin: '10px 0',
+            margin: '0',
             padding: '5px 10px',
             cursor: 'pointer',
             backgroundColor: '#ff8c00',
@@ -561,8 +557,30 @@
     };
 
     const mountReconstructionRoot = (root, target) => {
-        if (target.placement === 'after' && target.element.parentElement) {
-            target.element.insertAdjacentElement('afterend', root);
+        Object.assign(root.style, {
+            display: 'block',
+            position: '',
+            top: '',
+            left: '',
+            zIndex: '',
+            margin: '10px 0'
+        });
+
+        if (target.placement === 'topLeft') {
+            if (getComputedStyle(target.element).position === 'static') {
+                target.element.style.position = 'relative';
+            }
+            target.element.style.overflow = 'visible';
+
+            Object.assign(root.style, {
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                zIndex: '20',
+                margin: '0'
+            });
+
+            target.element.appendChild(root);
             return;
         }
 
