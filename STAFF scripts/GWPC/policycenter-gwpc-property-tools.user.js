@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GWPC Property Tools for PolicyCenter
 // @namespace    GPG_Scripts
-// @version      1.0.7
+// @version      1.0.8
 // @description  Add Reconstruction Calculator, Zillow, and Google Maps buttons to PolicyCenter/Guidewire
 // @match        https://policycenter.farmersinsurance.com/pc/PolicyCenter.do*
 // @match        https://policycenter-2.farmersinsurance.com/pc/PolicyCenter.do*
@@ -490,17 +490,29 @@
         return findZipCodeFromAddress(screenConfig);
     };
 
-    const buildReconstructionUrl = (screenConfig) => {
+    const getReconstructionLookup = (screenConfig) => {
         const squareFootage = findSquareFootage(screenConfig);
         const zipCode = findZipCode(screenConfig);
 
         if (!zipCode || !squareFootage) {
-            return null;
+            return {
+                squareFootage,
+                zipCode,
+                url: null
+            };
         }
 
-        return `${RECONSTRUCTION.baseUrl}?zipcode=${encodeURIComponent(zipCode)}&squareFootage=${encodeURIComponent(
-            squareFootage.value
-        )}`;
+        return {
+            squareFootage,
+            zipCode,
+            url: `${RECONSTRUCTION.baseUrl}?zipcode=${encodeURIComponent(zipCode)}&squareFootage=${encodeURIComponent(
+                squareFootage.value
+            )}`
+        };
+    };
+
+    const buildReconstructionUrl = (screenConfig) => {
+        return getReconstructionLookup(screenConfig).url;
     };
 
     const isReconstructionRootMountedOnTarget = (root, target) => {
@@ -535,9 +547,17 @@
             event.preventDefault();
             event.stopPropagation();
 
-            const reconstructionUrl = buildReconstructionUrl(screenConfig);
+            const liveTarget = findMountTarget(RECONSTRUCTION.screenConfigs);
+            const liveScreenConfig = liveTarget ? liveTarget.screenConfig : screenConfig;
+            const lookup = getReconstructionLookup(liveScreenConfig);
+            const reconstructionUrl = lookup.url;
             if (!reconstructionUrl) {
                 scheduleSync();
+                console.warn('[GWPC Property Tools] Reconstruction Calculator missing data', {
+                    zipCode: lookup.zipCode || '',
+                    squareFootage: lookup.squareFootage ? lookup.squareFootage.value : ''
+                });
+                window.alert('Reconstruction Calculator needs ZIP code and square footage before it can open.');
                 return;
             }
 
@@ -588,12 +608,12 @@
         }
 
         const hasUrl = Boolean(buildReconstructionUrl(screenConfig));
-        button.disabled = !hasUrl;
+        button.disabled = false;
         button.style.opacity = hasUrl ? '1' : '0.65';
-        button.style.cursor = hasUrl ? 'pointer' : 'not-allowed';
+        button.style.cursor = 'pointer';
         button.title = hasUrl
             ? 'Open the Reconstruction Calculator'
-            : 'Waiting for a valid address and square footage';
+            : 'Click to re-check ZIP code and square footage';
     };
 
     const ensureReconstructionButton = () => {
