@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         GWPC Property Tools for PolicyCenter
 // @namespace    GPG_Scripts
-// @version      1.0.8
+// @version      1.0.9
 // @description  Add Reconstruction Calculator, Zillow, and Google Maps buttons to PolicyCenter/Guidewire
 // @match        https://policycenter.farmersinsurance.com/pc/PolicyCenter.do*
 // @match        https://policycenter-2.farmersinsurance.com/pc/PolicyCenter.do*
@@ -540,12 +540,30 @@
             backgroundColor: '#ff8c00',
             color: '#fff',
             border: 'none',
-            borderRadius: '4px'
+            borderRadius: '4px',
+            position: 'relative',
+            zIndex: '2147483647',
+            pointerEvents: 'auto'
         });
 
-        button.addEventListener('click', (event) => {
+        let lastOpenAt = 0;
+
+        const openCalculator = (event) => {
+            if (event.button != null && event.button !== 0) {
+                return;
+            }
+
             event.preventDefault();
             event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') {
+                event.stopImmediatePropagation();
+            }
+
+            const now = Date.now();
+            if (now - lastOpenAt < 700) {
+                return;
+            }
+            lastOpenAt = now;
 
             const liveTarget = findMountTarget(RECONSTRUCTION.screenConfigs);
             const liveScreenConfig = liveTarget ? liveTarget.screenConfig : screenConfig;
@@ -558,10 +576,22 @@
                     squareFootage: lookup.squareFootage ? lookup.squareFootage.value : ''
                 });
                 window.alert('Reconstruction Calculator needs ZIP code and square footage before it can open.');
+                lastOpenAt = 0;
+                return;
+            }
+
+            const popup = window.open('about:blank', '_blank');
+            if (popup) {
+                popup.opener = null;
+                popup.location.replace(reconstructionUrl);
                 return;
             }
 
             window.open(reconstructionUrl, '_blank', 'noopener');
+        };
+
+        ['pointerdown', 'mousedown', 'click'].forEach((eventName) => {
+            button.addEventListener(eventName, openCalculator, true);
         });
 
         return button;
@@ -592,7 +622,10 @@
 
         if (target.placement === 'before' && target.element.parentElement) {
             Object.assign(root.style, {
-                margin: '0 0 4px 0'
+                margin: '0 0 4px 0',
+                position: 'relative',
+                zIndex: '2147483647',
+                pointerEvents: 'auto'
             });
 
             target.element.insertAdjacentElement('beforebegin', root);
