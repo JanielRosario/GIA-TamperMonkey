@@ -78,6 +78,7 @@ $pagesBase = $PagesBaseUrl.TrimEnd("/")
 $relativeDir = "Extentions/Browser-PDF-Webhook-Sender"
 $relativeCrxPath = "$relativeDir/$packageSlug-$version.crx"
 $updateUrl = "$pagesBase/$relativeDir/update.xml"
+$installerPs1Url = "$pagesBase/$relativeDir/install-managed-extension.ps1"
 $crxUrl = "$pagesBase/$relativeCrxPath"
 $extensionId = (& node (Join-Path $deploymentDir "extension-id-from-pem.js") $resolvedPemPath).Trim()
 
@@ -168,6 +169,33 @@ try {
   $installer = $template.Replace("__EXTENSION_ID__", $extensionId).Replace("__UPDATE_URL__", $updateUrl)
   Set-Content -LiteralPath (Join-Path $publishDir "install-managed-extension.ps1") -Value $installer -Encoding UTF8
 
+  $batchInstaller = @"
+@echo off
+setlocal
+
+net session >nul 2>&1
+if not "%errorlevel%"=="0" (
+  echo This installer must be run as Administrator.
+  echo Right-click this file and choose Run as administrator.
+  pause
+  exit /b 1
+)
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm '$installerPs1Url' | iex"
+if errorlevel 1 (
+  echo.
+  echo Install failed.
+  pause
+  exit /b %errorlevel%
+)
+
+echo.
+echo Managed extension install policy is configured.
+echo Restart Chrome/Edge or visit chrome://policy / edge://policy and reload policies.
+pause
+"@
+  Set-Content -LiteralPath (Join-Path $publishDir "install-managed-extension.bat") -Value $batchInstaller -Encoding ASCII
+
   $indexHtml = @"
 <!doctype html>
 <html lang="en">
@@ -183,9 +211,10 @@ try {
       <li><a href="./update.xml">update.xml</a></li>
       <li><a href="./$packageSlug-$version.crx">$packageSlug-$version.crx</a></li>
       <li><a href="./install-managed-extension.ps1">install-managed-extension.ps1</a></li>
+      <li><a href="./install-managed-extension.bat">install-managed-extension.bat</a></li>
     </ul>
     <p>Install command, run as Administrator:</p>
-    <pre>powershell -ExecutionPolicy Bypass -Command "irm '$pagesBase/$relativeDir/install-managed-extension.ps1' | iex"</pre>
+    <pre>powershell -ExecutionPolicy Bypass -Command "irm '$installerPs1Url' | iex"</pre>
   </body>
 </html>
 "@
