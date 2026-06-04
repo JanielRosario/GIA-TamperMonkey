@@ -43,7 +43,8 @@
       "path": "General Utilities/CFP Quick Quote PDF/cfp-quick-quote-pdf-updater.user.js",
       "positions": [
         "PRODUCER",
-        "CSR"
+        "CSR",
+        "SDR"
       ],
       "summary": "Generates a downloadable PDF from the CFP quick quote platform.",
       "details": "Adds a PDF generation workflow to the CFP quick quote platform so staff can produce a downloadable quote document from the quote screen."
@@ -51,7 +52,8 @@
     {
       "path": "PolicyCenter/Property Tools/gwpc-property-tools-updater.user.js",
       "positions": [
-        "CSR"
+        "CSR",
+        "SDR"
       ],
       "summary": "Adds property helper buttons to PolicyCenter.",
       "details": "Adds Reconstruction Calculator, Zillow, and Google Maps buttons to PolicyCenter or Guidewire pages to speed up property lookup and quoting work."
