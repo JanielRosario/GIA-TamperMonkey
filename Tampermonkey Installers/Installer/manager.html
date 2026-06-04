@@ -332,6 +332,9 @@
     const CONFIG_URL = './installer-config.json';
     const GITHUB_CONTENTS_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${encodeRepoPath(CONFIG_PATH)}`;
     const REQUIRED_POSITIONS = ['PRODUCER', 'CSR', 'SDR'];
+    const DEFAULT_COMMIT_MESSAGE = 'Update installer positions';
+    const TOKEN_STORAGE_KEY = 'tampermonkeyInstallerManagerToken';
+    const COMMIT_MESSAGE_STORAGE_KEY = 'tampermonkeyInstallerManagerCommitMessage';
 
     const state = {
       config: null,
@@ -359,6 +362,50 @@
 
     function encodeRepoPath(path) {
       return path.split('/').map(encodeURIComponent).join('/');
+    }
+
+    function getStoredValue(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch {
+        return null;
+      }
+    }
+
+    function setStoredValue(key, value) {
+      try {
+        if (value) {
+          localStorage.setItem(key, value);
+        } else {
+          localStorage.removeItem(key);
+        }
+      } catch {
+        // Local storage can be disabled by browser settings.
+      }
+    }
+
+    function loadSavedGitHubFields() {
+      const savedToken = getStoredValue(TOKEN_STORAGE_KEY);
+      const savedCommitMessage = getStoredValue(COMMIT_MESSAGE_STORAGE_KEY);
+      if (savedToken) {
+        githubTokenInput.value = savedToken;
+      }
+      if (savedCommitMessage !== null) {
+        commitMessageInput.value = savedCommitMessage;
+      }
+    }
+
+    function saveGitHubTokenField() {
+      setStoredValue(TOKEN_STORAGE_KEY, githubTokenInput.value.trim());
+    }
+
+    function saveCommitMessageField() {
+      setStoredValue(COMMIT_MESSAGE_STORAGE_KEY, commitMessageInput.value.trim());
+    }
+
+    function saveGitHubFields() {
+      saveGitHubTokenField();
+      saveCommitMessageField();
     }
 
     function cloneConfig(config) {
@@ -570,7 +617,7 @@
         const result = await githubRequest(GITHUB_CONTENTS_URL, token, {
           method: 'PUT',
           body: JSON.stringify({
-            message: commitMessageInput.value.trim() || 'Update installer positions',
+            message: commitMessageInput.value.trim() || DEFAULT_COMMIT_MESSAGE,
             content: toBase64Utf8(json),
             sha: currentFile.sha,
             branch: BRANCH
@@ -623,7 +670,16 @@
     downloadButton.addEventListener('click', downloadConfig);
     copyButton.addEventListener('click', copyConfig);
     saveGitHubButton.addEventListener('click', saveConfigToGitHub);
+    githubTokenInput.addEventListener('input', saveGitHubTokenField);
+    githubTokenInput.addEventListener('change', saveGitHubTokenField);
+    commitMessageInput.addEventListener('input', saveCommitMessageField);
+    commitMessageInput.addEventListener('change', saveCommitMessageField);
+    commitMessageInput.addEventListener('keyup', saveCommitMessageField);
+    githubTokenInput.addEventListener('keyup', saveGitHubTokenField);
+    window.addEventListener('beforeunload', saveGitHubFields);
 
+    loadSavedGitHubFields();
+    window.setInterval(saveGitHubFields, 1000);
     loadConfig().catch((error) => setStatus(error.message || String(error), true));
   </script>
 </body>
