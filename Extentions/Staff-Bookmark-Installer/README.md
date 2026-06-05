@@ -45,3 +45,17 @@ Bookmark Installer/manager.html
 ```
 
 Managers use that page to import exported bookmark `.html` files, manually add bookmarks/folders, and save `bookmarks-config.json` back to GitHub.
+
+## Enterprise installer
+
+The enterprise installer files live in:
+
+```text
+deployment/
+```
+
+Use `deployment/install-managed-extension.bat` as the source batch installer. After the GitHub Pages deployment publishes the signed CRX/update manifest, the hosted installer URL is:
+
+```text
+https://JanielRosario.github.io/Gia-Extensions/Extentions/Staff-Bookmark-Installer/install-managed-extension.bat
+```

@@ -1,4 +1,4 @@
-name: Deploy Browser PDF Webhook Sender
+name: Deploy Extension Pages
 
 on:
   workflow_dispatch:
@@ -7,6 +7,8 @@ on:
       - main
     paths:
       - "Extentions/Browser-PDF-Webhook-Sender/**"
+      - "Extentions/Staff-Bookmark-Installer/**"
+      - "Bookmark Installer/**"
       - "Tampermonkey Installers/**"
       - ".github/workflows/deploy-browser-pdf-webhook-sender.yml"
 
@@ -50,6 +52,28 @@ jobs:
           [IO.File]::WriteAllBytes($pemPath, [Convert]::FromBase64String($env:EXTENSION_PEM_BASE64))
           "EXTENSION_PEM_PATH=$pemPath" | Out-File -FilePath $env:GITHUB_ENV -Append
 
+      - name: Check Agency Bookmark Installer signing key
+        shell: pwsh
+        env:
+          EXTENSION_PEM_BASE64: ${{ secrets.AGENCY_BOOKMARK_INSTALLER_EXTENSION_PEM_BASE64 }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:EXTENSION_PEM_BASE64)) {
+            Write-Warning "Missing GitHub secret: AGENCY_BOOKMARK_INSTALLER_EXTENSION_PEM_BASE64. Skipping Agency Bookmark Installer CRX deployment."
+            "BUILD_AGENCY_BOOKMARK_INSTALLER=false" | Out-File -FilePath $env:GITHUB_ENV -Append
+          } else {
+            "BUILD_AGENCY_BOOKMARK_INSTALLER=true" | Out-File -FilePath $env:GITHUB_ENV -Append
+          }
+
+      - name: Decode Agency Bookmark Installer signing key
+        if: env.BUILD_AGENCY_BOOKMARK_INSTALLER == 'true'
+        shell: pwsh
+        env:
+          EXTENSION_PEM_BASE64: ${{ secrets.AGENCY_BOOKMARK_INSTALLER_EXTENSION_PEM_BASE64 }}
+        run: |
+          $pemPath = Join-Path $env:RUNNER_TEMP "agency-bookmark-installer.pem"
+          [IO.File]::WriteAllBytes($pemPath, [Convert]::FromBase64String($env:EXTENSION_PEM_BASE64))
+          "AGENCY_BOOKMARK_INSTALLER_PEM_PATH=$pemPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+
       - name: Build CRX and GitHub Pages files
         shell: pwsh
         env:
@@ -61,11 +85,31 @@ jobs:
             -OutputDir "$PWD\dist-pages" `
             -PagesBaseUrl "$env:PAGES_BASE_URL"
 
+      - name: Build Agency Bookmark Installer CRX and GitHub Pages files
+        if: env.BUILD_AGENCY_BOOKMARK_INSTALLER == 'true'
+        shell: pwsh
+        env:
+          PAGES_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+        run: |
+          .\Extentions\Staff-Bookmark-Installer\deployment\build-pages.ps1 `
+            -ExtensionDir "$PWD\Extentions\Staff-Bookmark-Installer" `
+            -PemPath "$env:AGENCY_BOOKMARK_INSTALLER_PEM_PATH" `
+            -OutputDir "$PWD\dist-pages" `
+            -PagesBaseUrl "$env:PAGES_BASE_URL"
+
       - name: Add Tampermonkey installer pages
         shell: pwsh
         run: |
           $source = Join-Path $PWD "Tampermonkey Installers"
           $destination = Join-Path $PWD "dist-pages/Tampermonkey Installers"
+          New-Item -ItemType Directory -Path $destination -Force | Out-Null
+          Copy-Item -Path (Join-Path $source "*") -Destination $destination -Recurse -Force
+
+      - name: Add bookmark manager pages
+        shell: pwsh
+        run: |
+          $source = Join-Path $PWD "Bookmark Installer"
+          $destination = Join-Path $PWD "dist-pages/Bookmark Installer"
           New-Item -ItemType Directory -Path $destination -Force | Out-Null
           Copy-Item -Path (Join-Path $source "*") -Destination $destination -Recurse -Force
 
