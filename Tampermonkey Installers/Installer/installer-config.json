@@ -12,6 +12,16 @@
   ],
   "scripts": [
     {
+      "path": "ALTA/Reconstruction Button/alta-reconstruction-button-updater.user.js",
+      "positions": [
+        "PRODUCER",
+        "CSR"
+      ],
+      "tags": [],
+      "summary": "Adds the Reconstruction Calculator link to ALTA home features.",
+      "details": "Adds an ALTA-style Reconstruction Calculator link beside the existing property lookup links and opens the calculator with ZIP code and livable square feet from the quote."
+    },
+    {
       "path": "AgencyZoom/Hidden Tag Manager/agencyzoom-hidden-tag-manager-updater.user.js",
       "positions": [],
       "tags": [],
