@@ -22,8 +22,7 @@
       "path": "AgencyZoom/Location Box Cleanup/agencyzoom-cleanup-force-usa-country-updater.user.js",
       "positions": [
         "PRODUCER",
-        "CSR",
-        "SDR"
+        "CSR"
       ],
       "tags": [],
       "summary": "Cleans AgencyZoom location fields and forces USA in country dropdowns.",
