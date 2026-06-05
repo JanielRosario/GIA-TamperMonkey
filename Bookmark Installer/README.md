@@ -1,6 +1,6 @@
 # Bookmark Installer Manager
 
-Static manager page and shared JSON config for the GWPC staff bookmark installer extension.
+Static manager page and shared JSON config for the agency bookmark installer extension.
 
 ## Files
 
@@ -19,10 +19,10 @@ The token needs only `Contents: Read and write` for this repository. Do not comm
 
 ## Data shape
 
-Bookmarks are stored by agency and position. The installer creates this managed folder path on the browser bookmarks bar:
+Bookmarks are stored by agency and position. The installer creates the selected position's folders and bookmarks directly on the browser bookmarks bar:
 
 ```text
-GWPC Staff / Agency Name / Position Name
+Bookmarks bar / Imported folders and bookmarks
 ```
 
 The installer is additive. It reuses existing folders, skips duplicate URLs, and does not delete manually created browser bookmarks.

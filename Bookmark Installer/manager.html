@@ -565,12 +565,8 @@
           <p class="hint">Token needs Contents: Read and write for JanielRosario/Gia-Extensions.</p>
         </section>
 
-        <section class="panel" aria-label="Config options">
+        <section class="panel" aria-label="Config output">
           <h2>Config</h2>
-          <div class="field">
-            <label for="managedRootTitle">Managed folder</label>
-            <input id="managedRootTitle" type="text">
-          </div>
           <textarea class="json-output" id="jsonOutput" spellcheck="false"></textarea>
         </section>
       </div>
@@ -641,7 +637,6 @@
     const copyButton = document.getElementById('copyButton');
     const downloadButton = document.getElementById('downloadButton');
     const refreshButton = document.getElementById('refreshButton');
-    const managedRootTitle = document.getElementById('managedRootTitle');
     const jsonOutput = document.getElementById('jsonOutput');
     const treeEl = document.getElementById('tree');
     const saveDialog = document.getElementById('saveDialog');
@@ -694,7 +689,6 @@
       return {
         schemaVersion: 1,
         updatedAt: new Date().toISOString().slice(0, 10),
-        managedRootTitle: 'GWPC Staff',
         agencies: AGENCIES.map((agency) => ({
           ...agency,
           positions: DEFAULT_POSITIONS.map((position) => ({
@@ -739,7 +733,6 @@
       const normalized = {
         schemaVersion: 1,
         updatedAt: incoming.updatedAt || defaults.updatedAt,
-        managedRootTitle: normalizeTitle(incoming.managedRootTitle, defaults.managedRootTitle),
         agencies: []
       };
 
@@ -927,7 +920,6 @@
     function renderAll() {
       if (!state.config) return;
       renderSelectors();
-      managedRootTitle.value = state.config.managedRootTitle;
       renderParentOptions(parentSelect, state.selectedParentId);
       renderParentOptions(importParentSelect, state.selectedImportParentId);
       renderPreview();
@@ -1359,11 +1351,6 @@
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !saveDialog.hidden) hideSaveDialog();
-    });
-
-    managedRootTitle.addEventListener('input', () => {
-      state.config.managedRootTitle = normalizeTitle(managedRootTitle.value, 'GWPC Staff');
-      syncOutput();
     });
 
     treeEl.addEventListener('input', (event) => {

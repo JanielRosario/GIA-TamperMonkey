@@ -21,7 +21,7 @@ const installButton = document.getElementById('installButton');
 const refreshButton = document.getElementById('refreshButton');
 const configStatus = document.getElementById('configStatus');
 const message = document.getElementById('message');
-const managedPath = document.getElementById('managedPath');
+const installLocation = document.getElementById('installLocation');
 const bookmarkCount = document.getElementById('bookmarkCount');
 const folderCount = document.getElementById('folderCount');
 const updatedAt = document.getElementById('updatedAt');
@@ -122,7 +122,6 @@ function normalizeConfig(config) {
   return {
     schemaVersion: Number(incoming.schemaVersion) || 1,
     updatedAt: incoming.updatedAt || '-',
-    managedRootTitle: normalizeTitle(incoming.managedRootTitle, 'GWPC Staff'),
     agencies: (Array.isArray(incoming.agencies) ? incoming.agencies : [])
       .map((agency) => ({
         id: String(agency.id || '').trim(),
@@ -212,7 +211,7 @@ function renderSelections() {
 
   const position = getPosition();
   const counts = position ? countNodes(position.bookmarks) : { folders: 0, bookmarks: 0 };
-  managedPath.textContent = position ? `${state.config.managedRootTitle} / ${agency.name} / ${position.name}` : '-';
+  installLocation.textContent = position ? 'Bookmarks bar' : '-';
   bookmarkCount.textContent = String(counts.bookmarks);
   folderCount.textContent = String(counts.folders);
   updatedAt.textContent = state.config.updatedAt || '-';
@@ -283,9 +282,32 @@ async function ensureFolder(parentId, title, stats) {
   return created;
 }
 
-async function urlExistsAnywhere(url) {
+async function getBookmarkNode(id) {
+  const nodes = await chromeCall(chrome.bookmarks, 'get', id);
+  return Array.isArray(nodes) && nodes.length ? nodes[0] : null;
+}
+
+async function isInsideLegacyManagedRoot(node) {
+  let current = node;
+  for (let depth = 0; depth < 20 && current && current.parentId; depth += 1) {
+    const parent = await getBookmarkNode(current.parentId);
+    if (!parent) return false;
+    if (!parent.url && parent.title.trim().toLowerCase() === 'gwpc staff') {
+      return true;
+    }
+    current = parent;
+  }
+  return false;
+}
+
+async function urlExistsAnywhere(url, options = {}) {
   const matches = await chromeCall(chrome.bookmarks, 'search', { url });
-  return Array.isArray(matches) && matches.some((node) => node.url === url);
+  const exactMatches = (Array.isArray(matches) ? matches : []).filter((node) => node.url === url);
+  if (!options.ignoreLegacyManagedRoot) return exactMatches.length > 0;
+  for (const match of exactMatches) {
+    if (!await isInsideLegacyManagedRoot(match)) return true;
+  }
+  return false;
 }
 
 async function urlExistsUnderParent(parentId, url) {
@@ -301,7 +323,9 @@ async function installBookmarkNodes(nodes, parentId, stats, options) {
       continue;
     }
 
-    if (options.skipExistingAnywhere && await urlExistsAnywhere(node.url)) {
+    if (options.skipExistingAnywhere && await urlExistsAnywhere(node.url, {
+      ignoreLegacyManagedRoot: options.ignoreLegacyManagedRoot
+    })) {
       stats.skippedBookmarks += 1;
       continue;
     }
@@ -348,15 +372,15 @@ async function installBookmarks() {
     });
 
     const barId = await getBookmarkBarId();
-    const managedRoot = await ensureFolder(barId, state.config.managedRootTitle, stats);
-    const agencyFolder = await ensureFolder(managedRoot.id, agency.name, stats);
-    const positionFolder = await ensureFolder(agencyFolder.id, position.name, stats);
-    await installBookmarkNodes(position.bookmarks, positionFolder.id, stats, {
-      skipExistingAnywhere: skipExistingAnywhere.checked
+    await installBookmarkNodes(position.bookmarks, barId, stats, {
+      skipExistingAnywhere: skipExistingAnywhere.checked,
+      ignoreLegacyManagedRoot: true
     });
 
     resultLog.textContent = [
-      `Managed folder: ${state.config.managedRootTitle} / ${agency.name} / ${position.name}`,
+      'Install location: Bookmarks bar',
+      `Agency: ${agency.name}`,
+      `Position: ${position.name}`,
       `Folders created: ${stats.createdFolders}`,
       `Folders reused: ${stats.reusedFolders}`,
       `Bookmarks created: ${stats.createdBookmarks}`,

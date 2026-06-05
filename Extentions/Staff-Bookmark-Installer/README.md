@@ -1,4 +1,4 @@
-# GWPC Staff Bookmark Installer
+# Agency Bookmark Installer
 
 Internal Chrome and Microsoft Edge extension for adding agency and position bookmark folders.
 
@@ -30,11 +30,11 @@ https://raw.githubusercontent.com/JanielRosario/Gia-Extensions/main/Bookmark%20I
 
 ## Safety behavior
 
-- Creates or reuses `GWPC Staff / Agency / Position` on the bookmarks bar.
-- Creates configured folders and bookmarks inside that managed path.
+- Creates configured folders and bookmarks directly on the bookmarks bar.
 - Does not delete bookmarks.
 - Does not rewrite manually added bookmarks.
 - Skips duplicate URLs by default if the URL already exists anywhere in the browser.
+- Ignores duplicate matches inside the old `GWPC Staff` test folder so corrected direct installs can still add bookmarks to the bar.
 
 ## Manager
 
