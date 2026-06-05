@@ -60,6 +60,18 @@
       "details": "Adds a PDF generation workflow to the CFP quick quote platform so staff can produce a downloadable quote document from the quote screen."
     },
     {
+      "path": "General Utilities/CFP Quick Quote PDF CPAGY/cfp-quick-quote-pdf-cpagy-updater.user.js",
+      "positions": [
+        "PRODUCER",
+        "CSR"
+      ],
+      "tags": [
+        "Carlos Perez"
+      ],
+      "summary": "Generates the CPAGY downloadable PDF from the CFP quick quote platform.",
+      "details": "Adds the CPAGY PDF generation workflow to the CFP quick quote platform so sister-agency staff can produce the matching downloadable quote document from the quote screen."
+    },
+    {
       "path": "PolicyCenter/Property Tools/gwpc-property-tools-updater.user.js",
       "positions": [
         "CSR",
