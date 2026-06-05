@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-06-04",
+  "updatedAt": "2026-06-05",
   "positions": [
     "PRODUCER",
     "CSR",
@@ -53,7 +53,9 @@
         "PRODUCER",
         "CSR"
       ],
-      "tags": [],
+      "tags": [
+        "Ulises Gomez"
+      ],
       "summary": "Generates a downloadable PDF from the CFP quick quote platform.",
       "details": "Adds a PDF generation workflow to the CFP quick quote platform so staff can produce a downloadable quote document from the quote screen."
     },
